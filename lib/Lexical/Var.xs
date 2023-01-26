@@ -3,11 +3,7 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#define PERL_VERSION_DECIMAL(r,v,s) (r*1000000 + v*1000 + s)
-#define PERL_DECIMAL_VERSION \
-	PERL_VERSION_DECIMAL(PERL_REVISION,PERL_VERSION,PERL_SUBVERSION)
-#define PERL_VERSION_GE(r,v,s) \
-	(PERL_DECIMAL_VERSION >= PERL_VERSION_DECIMAL(r,v,s))
+#include "ppport.h"
 
 #if !PERL_VERSION_GE(5,9,3)
 # define SVt_LAST (SVt_PVIO+1)
@@ -19,38 +15,6 @@
 # define SVt_PADNAME SVt_PVGV
 #endif /* <5.9.4 */
 
-#ifndef sv_setpvs
-# define sv_setpvs(SV, STR) sv_setpvn(SV, ""STR"", sizeof(STR)-1)
-#endif /* !sv_setpvs */
-
-#ifndef gv_stashpvs
-# define gv_stashpvs(name, flags) gv_stashpvn(""name"", sizeof(name)-1, flags)
-#endif /* !gv_stashpvs */
-
-#ifndef SvPAD_OUR_on
-# define SvPAD_OUR_on(SV) (SvFLAGS(SV) |= SVpad_OUR)
-#endif /* !SvPAD_OUR_on */
-
-#ifndef SvOURSTASH_set
-# ifdef OURSTASH_set
-#  define SvOURSTASH_set(SV, STASH) OURSTASH_set(SV, STASH)
-# else /* !OURSTASH_set */
-#  define SvOURSTASH_set(SV, STASH) (GvSTASH(SV) = STASH)
-# endif /* !OURSTASH_set */
-#endif /* !SvOURSTASH_set */
-
-#ifndef PadMAX
-# define PadlistARRAY(pl) ((PAD**)AvARRAY(pl))
-# define PadlistNAMES(pl) (PadlistARRAY(pl)[0])
-# define PadMAX(p) AvFILLp(p)
-typedef AV PADNAMELIST;
-#endif /* !PadMAX */
-
-#if !PERL_VERSION_GE(5,8,1)
-typedef AV PADLIST;
-typedef AV PAD;
-#endif /* <5.8.1 */
-
 #ifndef COP_SEQ_RANGE_LOW
 # if PERL_VERSION_GE(5,9,5)
 #  define COP_SEQ_RANGE_LOW(sv) ((XPVNV*)SvANY(sv))->xnv_u.xpad_cop_seq.xlow
@@ -60,6 +24,13 @@ typedef AV PAD;
 #  define COP_SEQ_RANGE_HIGH(sv) ((U32)SvIVX(sv))
 # endif /* <5.9.5 */
 #endif /* !COP_SEQ_RANGE_LOW */
+
+#ifndef PadMAX
+# define PadlistARRAY(pl) ((PAD**)AvARRAY(pl))
+# define PadlistNAMES(pl) (PadlistARRAY(pl)[0])
+# define PadMAX(p) AvFILLp(p)
+typedef AV PADNAMELIST;
+#endif /* !PadMAX */
 
 #ifndef COP_SEQ_RANGE_LOW_set
 # if PERL_VERSION_GE(5,9,5)
