@@ -133,7 +133,7 @@ static OP *pp_const_via_ref(pTHX)
 	dSP;
 	SV *reference_sv = cSVOPx_sv(PL_op);
 	SV *referent_sv = SvRV(reference_sv);
-	PUSHs(referent_sv);
+	XPUSHs(referent_sv);
 	RETURN;
 }
 #endif /* Q_CONST_COPIES */
