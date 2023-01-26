@@ -71,6 +71,16 @@ static SV *THX_newSV_type(pTHX_ svtype type)
 # define GV_NOTQUAL 0
 #endif /* !GV_NOTQUAL */
 
+#ifndef newPADNAMEpvn
+typedef SV PADNAME;
+PADNAME* S_newPADNAMEpvn(pTHX_ const char* ptr, size_t len) {
+	SV* result = newSVpvn(ptr, len);
+	SvUPGRADE(result, SVt_PVMG);
+	return result;
+}
+#define newPADNAMEpvn(ptr, len) S_newPADNAMEpvn(aTHX_ ptr, len)
+#define padnamelist_store av_store
+#endif
 /*
  * scalar classification
  *
@@ -436,13 +446,13 @@ static void THX_setup_pad(pTHX_ CV *compcv, char const *name)
 	PADNAMELIST *padname = PadlistNAMES(padlist);
 	PAD *padvar = PadlistARRAY(padlist)[1];
 	PADOFFSET ouroffset;
-	SV *ourname, *ourvar;
+	PADNAME* ourname;
+	SV *ourvar;
 	HV *stash;
 	ourvar = *av_fetch(padvar, PadMAX(padvar) + 1, 1);
 	SvPADMY_on(ourvar);
 	ouroffset = PadMAX(padvar);
-	ourname = newSV_type(SVt_PADNAME);
-	sv_setpv(ourname, name);
+	ourname = newPADNAMEpvn(name, strlen(name));
 	SvPAD_OUR_on(ourname);
 	stash = name[0] == '$' ? stash_lex_sv :
 		name[0] == '@' ? stash_lex_av : stash_lex_hv;
@@ -450,7 +460,7 @@ static void THX_setup_pad(pTHX_ CV *compcv, char const *name)
 	COP_SEQ_RANGE_LOW_set(ourname, PL_cop_seqmax);
 	COP_SEQ_RANGE_HIGH_set(ourname, pad_max());
 	PL_cop_seqmax++;
-	av_store(padname, ouroffset, ourname);
+	padnamelist_store(padname, ouroffset, ourname);
 #ifdef PadnamelistMAXNAMED
 	PadnamelistMAXNAMED(padname) = ouroffset;
 #endif /* PadnamelistMAXNAMED */
