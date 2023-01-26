@@ -33,7 +33,12 @@ typedef AV PADNAMELIST;
 #endif /* !PadMAX */
 
 #ifndef COP_SEQ_RANGE_LOW_set
-# if PERL_VERSION_GE(5,9,5)
+# if PERL_VERSION_GE(5, 21, 0)
+    #define COP_SEQ_RANGE_LOW_set(sv,val)           \
+     STMT_START { (sv)->xpadn_low = (val); } STMT_END
+    #define COP_SEQ_RANGE_HIGH_set(sv,val)          \
+     STMT_START { (sv)->xpadn_high = (val); } STMT_END
+# elif PERL_VERSION_GE(5,9,5)
 #  define COP_SEQ_RANGE_LOW_set(sv,val) \
 	do { ((XPVNV*)SvANY(sv))->xnv_u.xpad_cop_seq.xlow = val; } while(0)
 #  define COP_SEQ_RANGE_HIGH_set(sv,val) \
