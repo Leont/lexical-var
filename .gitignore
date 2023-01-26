@@ -11,3 +11,4 @@
 /Lexical-Var-*
 /lib/Lexical/Var.c
 /lib/Lexical/Var.o
+.build/
