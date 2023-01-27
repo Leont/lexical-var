@@ -1,0 +1,65 @@
+name: "multiperl test"
+on:
+  push:
+    branches: "*"
+    tags-ignore: "*"
+  pull_request: ~
+
+jobs:
+  multiperl-test:
+    env:
+      AUTHOR_TESTING: 1
+      AUTOMATED_TESTING: 1
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+        - "devel"
+        - "5.36"
+        - "5.34"
+        - "5.32"
+        - "5.30"
+        - "5.28"
+        - "5.26"
+        - "5.24"
+        - "5.22"
+        - "5.20"
+        - "5.18"
+        - "5.16"
+        - "5.14"
+        - "5.12"
+        - "5.10"
+        - "5.8"
+
+    container:
+      image: perldocker/perl-tester:${{ matrix.perl-version }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install cpanminus
+        run: |
+          PERL5LIB=. curl https://cpanmin.us/ > /tmp/cpanm
+          chmod u+x /tmp/cpanm
+      - name: Install Dependencies
+        run: cpanm --installdeps .
+      - name: Build.PL
+        run: perl Build.PL
+      - name: Build
+        run: ./Build
+      - name: Install yath
+        run: cpanm --notest Test2::Harness
+      - name: Install testing libraries
+        run: cpanm --notest Test2::Harness::Renderer::JUnit
+      - name: Run the tests
+        run: |
+          JUNIT_TEST_FILE="/tmp/test-output.xml" ALLOW_PASSING_TODOS=1 yath test --renderer=Formatter --renderer=JUnit -D
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v3
+        if: always() # always run even if the previous step fails
+        with:
+          check_name: JUnit Report (${{ matrix.perl-version }})
+          report_paths: /tmp/test-output.xml
+
