@@ -1,6 +1,8 @@
 use warnings;
 use strict;
 
+use lib '.';
+
 use Test::More tests => 12;
 
 BEGIN { $SIG{__WARN__} = sub { die "WARNING: $_[0]" }; }

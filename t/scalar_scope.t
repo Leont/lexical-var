@@ -1,6 +1,8 @@
 use warnings;
 use strict;
 
+use lib '.';
+
 use Test::More tests => 84;
 
 BEGIN { $^H |= 0x20000 if "$]" < 5.008; }
